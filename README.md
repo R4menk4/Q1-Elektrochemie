@@ -18,6 +18,8 @@ npm run dev
 
 Die App kann zusätzlich direkt über `index.html` im Browser geöffnet werden. Dafür lädt die Startdatei `local-app.js`, eine browserfertige Version ohne Entwicklungsserver.
 
+Für GitHub Pages liegt die browserfertige Datei zusätzlich unter `public/local-app.js`. Beim Vite-Build wird sie dadurch in die fertige statische Webseite übernommen.
+
 ## Build
 
 ```bash
