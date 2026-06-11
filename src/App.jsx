@@ -6,9 +6,11 @@ import RedoxExplanationPage from './pages/RedoxExplanationPage.jsx';
 import RedoxEasyPracticePage from './pages/RedoxEasyPracticePage.jsx';
 import RedoxMediumPracticePage from './pages/RedoxMediumPracticePage.jsx';
 import RedoxHardPracticePage from './pages/RedoxHardPracticePage.jsx';
+import SelfCheckPage from './pages/SelfCheckPage.jsx';
 
 const views = {
   home: HomePage,
+  selfCheck: SelfCheckPage,
   redoxOverview: RedoxOverviewPage,
   redoxExplanation: RedoxExplanationPage,
   redoxPractice: RedoxEasyPracticePage,

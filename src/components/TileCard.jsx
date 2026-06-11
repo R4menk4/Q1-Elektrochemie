@@ -4,13 +4,14 @@ export default function TileCard({
   status = 'active',
   onClick,
   badge,
+  featured = false,
 }) {
   const disabled = status !== 'active';
 
   return (
     <button
       type="button"
-      className={`tile-card ${disabled ? 'is-disabled' : ''}`}
+      className={`tile-card ${featured ? 'tile-card--featured' : ''} ${disabled ? 'is-disabled' : ''}`}
       onClick={onClick}
       aria-disabled={disabled}
     >

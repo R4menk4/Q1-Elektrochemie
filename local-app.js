@@ -20,6 +20,80 @@
     { id: 'batterien', title: 'Batterien und Akkumulatoren', description: 'Kommt später', status: 'coming-soon' },
   ];
 
+  const selfCheckData = {
+    title: 'Selbstcheck Elektrochemie',
+    subtitle: 'Hake an, welche Kompetenzen du bereits sicher beherrschst. Nutze den Selbstcheck zur Vorbereitung auf die Unterrichtsreihe, Klausur oder Wiederholung.',
+    sections: [
+      {
+        id: 'oxidationszahlen-redoxreaktionen',
+        title: 'Oxidationszahlen und Redoxreaktionen',
+        items: [
+          'Ich kann Oxidationszahlen bestimmen.',
+          'Ich kann Oxidation und Reduktion erklären.',
+          'Ich kann bei einer Redoxreaktion erkennen, welches Teilchen oxidiert und welches reduziert wird.',
+          'Ich kann Oxidationsmittel und Reduktionsmittel unterscheiden.',
+          'Ich kann einfache Redoxreaktionen mithilfe von Teilgleichungen beschreiben.',
+          'Ich kann anhand von Teilgleichungen die Gesamtreaktion einer Redoxreaktion herleiten.',
+        ],
+      },
+      {
+        id: 'redoxreihe-metalle',
+        title: 'Redoxreihe der Metalle',
+        items: [
+          'Ich kann die Begriffe „edel“ und „unedel“ erklären.',
+          'Ich kann die Redoxreihe der Metalle zur Vorhersage von Reaktionen nutzen.',
+          'Ich kann Versuchsergebnisse zur Redoxreihe fachlich auswerten.',
+        ],
+      },
+      {
+        id: 'galvanische-zelle',
+        title: 'Galvanische Zelle',
+        items: [
+          'Ich kann den Aufbau einer galvanischen Zelle beschreiben.',
+          'Ich kann die Funktion der Halbzellen erklären.',
+          'Ich kann Anode und Kathode einer galvanischen Zelle zuordnen.',
+          'Ich kann den Elektronenfluss und den Ionenfluss in einer galvanischen Zelle beschreiben.',
+          'Ich kann die Funktion einer Salzbrücke oder eines Diaphragmas erklären.',
+          'Ich kann die Vorgänge in der Daniell-Zelle beschreiben.',
+          'Ich kann die Teilgleichungen und die Gesamtreaktion einer galvanischen Zelle aufstellen.',
+        ],
+      },
+      {
+        id: 'elektrodenpotenziale',
+        title: 'Elektrodenpotenziale',
+        items: [
+          'Ich kann erklären, was ein Elektrodenpotenzial ist.',
+          'Ich kann Standardelektrodenpotenziale aus einer Tabelle nutzen.',
+          'Ich kann mithilfe von Elektrodenpotenzialen Donator- und Akzeptorhalbzelle bestimmen.',
+          'Ich kann die Zellspannung einer galvanischen Zelle berechnen.',
+          'Ich kann mithilfe der Zellspannung beurteilen, ob eine Redoxreaktion freiwillig abläuft.',
+        ],
+      },
+      {
+        id: 'lithium-ionen-akku',
+        title: 'Lithium-Ionen-Akku',
+        items: [
+          'Ich kann den grundlegenden Aufbau eines Lithium-Ionen-Akkus beschreiben.',
+          'Ich kann die Funktion von Anode, Kathode, Elektrolyt und Separator erklären.',
+          'Ich kann die Vorgänge beim Laden und Entladen unterscheiden.',
+          'Ich kann erklären, warum Lithium-Ionen-Akkus als wiederaufladbare Energiequellen genutzt werden.',
+        ],
+      },
+      {
+        id: 'elektrolyse',
+        title: 'Elektrolyse',
+        items: [
+          'Ich kann den Aufbau einer Elektrolysezelle beschreiben.',
+          'Ich kann erklären, warum für eine Elektrolyse elektrische Energie benötigt wird.',
+          'Ich kann Anode und Kathode bei der Elektrolyse zuordnen.',
+          'Ich kann Oxidation und Reduktion bei einer Elektrolyse erkennen.',
+          'Ich kann einfache Elektrodenreaktionen bei einer Elektrolyse formulieren.',
+          'Ich kann die Elektrolyse mit der galvanischen Zelle vergleichen.',
+        ],
+      },
+    ],
+  };
+
   const easyExercises = [
     exercise('redox-einfach-001', 'einfach', 'gesamtreaktion', 'Gesamtreaktion aufstellen', [['Zn', 'Zn', 'Zn²⁺'], ['Cu', 'Cu', 'Cu²⁺']], 'Stelle die Gesamtreaktion auf.', 'Zn + Cu²⁺ → Zn²⁺ + Cu', ['Zn + Cu2+ -> Zn2+ + Cu'], 'Zink gibt zwei Elektronen ab und wird zu Zn²⁺ oxidiert. Cu²⁺ nimmt zwei Elektronen auf und wird zu Cu reduziert.'),
     exercise('redox-einfach-002', 'einfach', 'gesamtreaktion', 'Gesamtreaktion aufstellen', [['Mg', 'Mg', 'Mg²⁺'], ['Ag', 'Ag', 'Ag⁺']], 'Stelle die Gesamtreaktion auf.', 'Mg + 2 Ag⁺ → Mg²⁺ + 2 Ag', ['Mg + 2 Ag+ -> Mg2+ + 2 Ag'], 'Magnesium gibt zwei Elektronen ab. Zwei Silber-Ionen nehmen zusammen zwei Elektronen auf.'),
@@ -76,6 +150,7 @@
     view: 'home',
     notice: '',
     explanationStep: 0,
+    selfCheck: loadSelfCheck(),
     practices: {
       einfach: emptyPracticeState(),
       mittel: emptyPracticeState(),
@@ -221,12 +296,50 @@
   function renderHome() {
     return `${pageHeader('Elektrochemie Lernprogramm', 'Interaktive Übungen und Erklärungen zur Elektrochemie')}
       ${state.notice ? `<div class="notice" role="status">${state.notice}</div>` : ''}
-      <div class="tile-grid">${modules.map((module) => `
+      <div class="tile-grid">
+        <button type="button" class="tile-card tile-card--featured" data-nav="selfCheck">
+          <span class="tile-card__title">Selbstcheck</span>
+          <span class="tile-card__description">Hake ab, welche Kompetenzen du schon sicher beherrschst, und drucke deinen Stand als PDF.</span>
+        </button>
+        ${modules.map((module) => `
         <button type="button" class="tile-card ${module.status !== 'active' ? 'is-disabled' : ''}" data-module="${module.id}">
           <span class="tile-card__title">${module.title}</span>
           <span class="tile-card__description">${module.description}</span>
           ${module.status !== 'active' ? '<span class="tile-card__badge">Kommt später</span>' : ''}
         </button>`).join('')}</div>`;
+  }
+
+  function loadSelfCheck() {
+    try {
+      return JSON.parse(localStorage.getItem('elektrochemie-self-check') || '{}');
+    } catch {
+      localStorage.removeItem('elektrochemie-self-check');
+      return {};
+    }
+  }
+
+  function saveSelfCheck() {
+    localStorage.setItem('elektrochemie-self-check', JSON.stringify(state.selfCheck));
+  }
+
+  function renderSelfCheck() {
+    return `<div class="print-hidden">${backButton('Zurück zur Startseite', 'home')}</div>
+      ${pageHeader(selfCheckData.title, selfCheckData.subtitle)}
+      <div class="button-row print-hidden">
+        <button type="button" class="primary-button" data-print-self-check="true">Selbstcheck drucken / als PDF speichern</button>
+        <button type="button" class="secondary-button" data-nav="home">Zurück zur Startseite</button>
+      </div>
+      <div class="self-check-list">${selfCheckData.sections.map((section) => `
+        <section class="self-check-section">
+          <h2>${section.title}</h2>
+          <div class="self-check-items">${section.items.map((item, index) => {
+            const itemId = `${section.id}-${index}`;
+            return `<label class="self-check-item">
+              <input type="checkbox" data-self-check-id="${itemId}" ${state.selfCheck[itemId] ? 'checked' : ''} />
+              <span>${item}</span>
+            </label>`;
+          }).join('')}</div>
+        </section>`).join('')}</div>`;
   }
 
   function renderOverview() {
@@ -499,6 +612,11 @@
       state.explanationStep = Math.max(0, Math.min(explanationSteps.length - 1, state.explanationStep + Number(button.dataset.step)));
       render();
     }));
+    document.querySelectorAll('[data-self-check-id]').forEach((checkbox) => checkbox.addEventListener('change', () => {
+      state.selfCheck[checkbox.dataset.selfCheckId] = checkbox.checked;
+      saveSelfCheck();
+    }));
+    document.querySelectorAll('[data-print-self-check]').forEach((button) => button.addEventListener('click', () => window.print()));
     const level = state.view === 'redoxHardPractice' ? 'schwer' : state.view === 'redoxMediumPractice' ? 'mittel' : 'einfach';
     const practice = state.practices[level];
     const answerInput = document.getElementById('answer-input');
@@ -554,15 +672,17 @@
     root.className = 'app-shell';
     const page = state.view === 'redoxOverview'
       ? renderOverview()
-      : state.view === 'redoxExplanation'
-        ? renderExplanation()
-        : state.view === 'redoxHardPractice'
-          ? renderPractice('schwer')
-          : state.view === 'redoxMediumPractice'
-            ? renderPractice('mittel')
-            : state.view === 'redoxPractice'
-              ? renderPractice('einfach')
-              : renderHome();
+      : state.view === 'selfCheck'
+        ? renderSelfCheck()
+        : state.view === 'redoxExplanation'
+          ? renderExplanation()
+          : state.view === 'redoxHardPractice'
+            ? renderPractice('schwer')
+            : state.view === 'redoxMediumPractice'
+              ? renderPractice('mittel')
+              : state.view === 'redoxPractice'
+                ? renderPractice('einfach')
+                : renderHome();
     root.innerHTML = `<main class="page-wrap">${page}</main>`;
     bindEvents();
   }

@@ -155,6 +155,12 @@ p {
   border-color: #8db9a4;
 }
 
+.tile-card--featured {
+  border-color: #2d6a4f;
+  background: #e8f4ed;
+  box-shadow: 0 18px 40px rgba(45, 106, 79, 0.16);
+}
+
 .tile-card.is-disabled {
   background: #f6f7f5;
   color: #64706a;
@@ -619,6 +625,42 @@ button:disabled {
   margin: 44px auto 0;
 }
 
+.self-check-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.self-check-section {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.self-check-items {
+  display: grid;
+  gap: 12px;
+}
+
+.self-check-item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid #d9e5de;
+  border-radius: var(--radius);
+  background: #fbfdfb;
+}
+
+.self-check-item input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+}
+
 @media (max-width: 720px) {
   .page-wrap {
     width: min(100% - 22px, 1120px);
@@ -665,5 +707,25 @@ button:disabled {
 
   .particle-input {
     grid-template-columns: minmax(44px, 3ch) minmax(60px, 7ch) minmax(42px, 3.5ch);
+  }
+}
+
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+
+  .app-shell {
+    background: #ffffff;
+  }
+
+  .page-wrap {
+    width: 100%;
+    padding: 0;
+  }
+
+  .self-check-section {
+    break-inside: avoid;
+    box-shadow: none;
   }
 }

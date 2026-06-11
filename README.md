@@ -40,6 +40,10 @@ Nach dem Build liegt die fertige Webseite im Ordner `dist/`. Dieser Ordner kann 
 
 Die Daniell-Element-Simulation liegt unter `public/Simulationen/Galvanische_Zelle/`. Die Startseite enthält eine aktive Kachel „Galvanische Zelle – Daniell-Element Simulation“, die auf `Simulationen/Galvanische_Zelle/index.html` verweist. Beim Vite-Build wird der Inhalt aus `public/` in die statische Ausgabe übernommen.
 
+## Selbstcheck
+
+Der Selbstcheck ist auf der Startseite als erste hervorgehobene Kachel erreichbar. Die Kompetenzen liegen in `src/data/selfCheckData.js`; zusätzlich gibt es `src/data/selfCheckCompetencies.js` als Import-Alias. Abgehakte Kompetenzen werden lokal im Browser gespeichert und können über „Selbstcheck drucken / als PDF speichern“ gedruckt oder als PDF gespeichert werden.
+
 ## Neue Aufgaben ergänzen
 
 Einfache Übungen für das Redox-Modul werden in `src/data/redoxExercises.js` ergänzt.

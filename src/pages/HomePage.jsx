@@ -35,6 +35,13 @@ export default function HomePage({ navigate }) {
       )}
 
       <TileGrid>
+        <TileCard
+          title="Selbstcheck"
+          description="Hake ab, welche Kompetenzen du schon sicher beherrschst, und drucke deinen Stand als PDF."
+          status="active"
+          featured
+          onClick={() => navigate('selfCheck')}
+        />
         {modules.map((module) => (
           <TileCard
             key={module.id}
