@@ -1,6 +1,6 @@
 # Elektrochemie Lernprogramm
 
-Eine lokale Web-App mit interaktiven Übungen und Erklärungen zur Elektrochemie. Die App enthält das Modul **Redoxreaktionen aufstellen** mit drei Übungsniveaus: **einfach**, **mittel** und **schwer**.
+Eine lokale Web-App mit interaktiven Uebungen und Erklaerungen zur Elektrochemie. Die App enthaelt unter anderem den Selbstcheck, das Modul **Redoxreaktionen aufstellen** mit den Niveaus **einfach**, **mittel** und **schwer**, die Daniell-Element-Simulation und das Modul **Klausuraehnliche Aufgaben**.
 
 ## Installation
 
@@ -14,11 +14,15 @@ npm install
 npm run dev
 ```
 
-## Direkt lokal öffnen
+## Direkt lokal oeffnen
 
-Die App kann zusätzlich direkt über `index.html` im Browser geöffnet werden. Dafür lädt die Startdatei `local-app.js`, eine browserfertige Version ohne Entwicklungsserver.
+Die App kann zusaetzlich direkt ueber `index.html` im Browser geoeffnet werden. Diese Startdatei laedt eine browserfertige Version ohne Entwicklungsserver:
 
-Für GitHub Pages liegt die browserfertige Datei zusätzlich unter `public/local-app.js`. Beim Vite-Build wird sie dadurch in die fertige statische Webseite übernommen.
+- `klausur-data-20260612.js`
+- `local-app-klausur-20260612.js`
+- `global-klausur-20260612.css`
+
+Fuer GitHub Pages liegen diese browserfertigen Dateien zusaetzlich unter `public/`.
 
 ## Build
 
@@ -32,40 +36,58 @@ npm run build
 npm run preview
 ```
 
-## Veröffentlichung über GitHub Pages
+## Veroeffentlichung ueber GitHub Pages
 
 Die App ist als statische Webseite baubar. In `vite.config.js` ist `base: './'` gesetzt, damit relative Pfade funktionieren. Falls die App in einem GitHub-Repository mit festem Namen liegt, kann alternativ `base: '/repository-name/'` gesetzt werden.
 
-Nach dem Build liegt die fertige Webseite im Ordner `dist/`. Dieser Ordner kann über GitHub Pages veröffentlicht werden, zum Beispiel mit GitHub Actions oder einem passenden Deployment-Workflow.
+Nach dem Build liegt die fertige Webseite im Ordner `dist/`. Dieser Ordner kann ueber GitHub Pages veroeffentlicht werden, zum Beispiel mit GitHub Actions oder einem passenden Deployment-Workflow.
 
 ## Simulationen
 
-Die Daniell-Element-Simulation liegt unter `public/Simulationen/Galvanische_Zelle/`. Die Startseite enthält eine aktive Kachel „Galvanische Zelle – Daniell-Element Simulation“, die auf `Simulationen/Galvanische_Zelle/index.html` verweist. Beim Vite-Build wird der Inhalt aus `public/` in die statische Ausgabe übernommen.
+Die Daniell-Element-Simulation liegt unter `public/Simulationen/Galvanische_Zelle/`. Die Startseite enthaelt eine aktive Kachel `Galvanische Zelle - Daniell-Element Simulation`, die auf `Simulationen/Galvanische_Zelle/index.html` verweist.
 
 ## Selbstcheck
 
-Der Selbstcheck ist auf der Startseite als erste hervorgehobene Kachel erreichbar. Die Kompetenzen liegen in `src/data/selfCheckData.js`; zusätzlich gibt es `src/data/selfCheckCompetencies.js` als Import-Alias. Abgehakte Kompetenzen werden lokal im Browser gespeichert und können über „Selbstcheck drucken / als PDF speichern“ gedruckt oder als PDF gespeichert werden.
+Der Selbstcheck ist auf der Startseite als hervorgehobene Kachel erreichbar. Die Kompetenzen liegen in `src/data/selfCheckData.js`; zusaetzlich gibt es `src/data/selfCheckCompetencies.js` als Import-Alias. Abgehakte Kompetenzen werden lokal im Browser gespeichert und koennen gedruckt oder als PDF gespeichert werden.
 
-## Neue Aufgaben ergänzen
+## Klausuraehnliche Aufgaben
 
-Einfache Übungen für das Redox-Modul werden in `src/data/redoxExercises.js` ergänzt.
+Das Modul **Klausuraehnliche Aufgaben** ist ueber eine aktive Kachel auf der Startseite erreichbar.
 
-Mittlere Übungen liegen in `src/data/redoxMediumExercises.js`. Neue mittlere Aufgaben können dort mit `level: "mittel"` ergänzt werden. Jede Aufgabe enthält unter anderem `id`, `level`, `type`, `givenForms`, `prompt`, `answer`, `acceptedAnswers` und `explanation`.
+Die Aufgaben liegen in:
 
-Schwere Übungen liegen in `src/data/redoxHardExercises.js`. Sie enthalten auch Redoxreaktionen in saurer Lösung. Bei diesen Aufgaben können `H⁺` und `H₂O` als Hilfsstoffe zum Ausgleichen verwendet werden. Neue schwere Aufgaben werden dort mit `level: "schwer"` ergänzt.
+```text
+src/data/klausurTasks.js
+```
 
-Für besondere Aufgabenformate können zusätzliche Felder verwendet werden, zum Beispiel `options`, `pairs`, `partialReactions`, `template`, `blanks` oder `correctBlanks`.
+Die Bilder werden ueber die in der Datendatei angegebenen Pfade geladen:
+
+```text
+assets/images/
+```
+
+Freitextantworten und strukturierte Eingaben werden lokal im Browser gespeichert. Der Kriteriencheck prueft Schluesselbegriffe und zentrale Aussagen, ersetzt aber keine Korrektur durch eine Lehrkraft. Jede Aufgabe kann ueber den Druckdialog gedruckt oder als PDF gespeichert werden.
+
+Neue Klausuraufgaben werden in `src/data/klausurTasks.js` ergaenzt. Fuer die direkt anklickbare `index.html` wird zusaetzlich die browserfertige Datendatei `klausur-data-20260612.js` geladen.
+
+`src/data/klausurTasks.js` enthaelt direkte Pruefungen (`checking: { type: "direct" }`) und Kriterienpruefungen (`checking: { type: "criteria" }`). Der Kriterienchecker unterstuetzt `keywordGroups`, `requiredGroups` und Synonyme aus `chemistryAliases`, ersetzt aber weiterhin keine Lehrkraftkorrektur.
+
+## Neue Redox-Aufgaben ergaenzen
+
+Einfache Uebungen fuer das Redox-Modul werden in `src/data/redoxExercises.js` ergaenzt.
+
+Mittlere Uebungen liegen in `src/data/redoxMediumExercises.js`. Neue mittlere Aufgaben koennen dort mit `level: "mittel"` ergaenzt werden.
+
+Schwere Uebungen liegen in `src/data/redoxHardExercises.js`. Sie enthalten auch Redoxreaktionen in saurer Loesung. Bei diesen Aufgaben koennen `H+` und `H2O` als Hilfsstoffe zum Ausgleichen verwendet werden.
 
 ## Strukturierte chemische Eingabe
 
-Chemische Gleichungen werden in den Übungen nicht als großes Freitextfeld eingegeben. Jedes Teilchen besteht aus einzelnen Feldern für Koeffizient, Formel, Index und Ladung. Pluszeichen und Reaktionspfeile sind vorgegeben und nicht editierbar.
+Chemische Gleichungen werden in den Redox-Uebungen nicht als grosses Freitextfeld eingegeben. Jedes Teilchen besteht aus einzelnen Feldern fuer Koeffizient, Formel, Index und Ladung. Pluszeichen und Reaktionspfeile sind vorgegeben und nicht editierbar.
 
-Die Tab-Taste springt von links nach rechts durch die Felder. Mit Shift + Tab kann man zurückspringen.
+Die Tab-Taste springt von links nach rechts durch die Felder. Mit Shift + Tab kann man zurueckspringen.
 
-Neue Aufgaben können optional ein `answerTemplate` erhalten. Ohne eigenes Template wird die Eingabemaske aus dem vorhandenen Feld `answer` abgeleitet.
+Neue Aufgaben koennen optional ein `answerTemplate` erhalten. Ohne eigenes Template wird die Eingabemaske aus dem vorhandenen Feld `answer` abgeleitet.
 
-Auch komplexere Ionen wie `MnO₄⁻`, `Cr₂O₇²⁻`, `C₂O₄²⁻`, `SO₃²⁻` oder `SO₄²⁻` werden über die strukturierte Eingabe erfasst. Das Formel-Feld darf dabei längere Formeln wie `MnO4`, `Cr2O7`, `C2O4`, `SO3` oder `SO4` enthalten; Index und Ladung können getrennt eingetragen werden.
+## Neue Kacheln oder Module ergaenzen
 
-## Neue Kacheln oder Module ergänzen
-
-Neue Themenkacheln werden in `src/data/modules.js` ergänzt. Für vollständig neue Module können anschließend eigene Seiten in `src/pages/` und passende Komponenten in `src/components/` angelegt werden.
+Neue Themenkacheln werden in `src/data/modules.js` oder direkt auf der Startseite ergaenzt. Fuer vollstaendig neue Module koennen eigene Seiten in `src/pages/` und passende Komponenten in `src/components/` angelegt werden.

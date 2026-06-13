@@ -42,6 +42,12 @@ export default function HomePage({ navigate }) {
           featured
           onClick={() => navigate('selfCheck')}
         />
+        <TileCard
+          title="Klausurähnliche Aufgaben"
+          description="Übe materialgestützte Aufgaben mit Alltagsbezug im Stil einer Klausur."
+          status="active"
+          onClick={() => navigate('klausurOverview')}
+        />
         {modules.map((module) => (
           <TileCard
             key={module.id}
