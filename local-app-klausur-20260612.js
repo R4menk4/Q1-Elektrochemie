@@ -8,6 +8,13 @@
       target: 'redoxOverview',
     },
     {
+      id: 'electrode-potentials',
+      title: 'Elektrodenpotenziale',
+      description: 'Verstehe, wie Elektrodenpotenziale entstehen, warum man die Standardwasserstoffelektrode braucht und wie Zellspannungen berechnet werden.',
+      status: 'active',
+      target: 'electrodePotentials',
+    },
+    {
       id: 'galvanische-zellen',
       title: 'Galvanische Zelle – Daniell-Element Simulation',
       description: 'Erkunde den Elektronenfluss, die Oxidation an der Zink-Elektrode, die Reduktion an der Kupfer-Elektrode und den Ladungsausgleich durch die Ionenbrücke.',
@@ -16,7 +23,7 @@
     },
     { id: 'elektrolyse', title: 'Elektrolyse', description: 'Kommt später', status: 'coming-soon' },
     { id: 'spannungsreihe', title: 'Spannungsreihe', description: 'Kommt später', status: 'coming-soon' },
-    { id: 'korrosion', title: 'Korrosion', description: 'Kommt später', status: 'coming-soon' },
+    { id: 'korrosion', title: 'Korrosion und Korrosionsschutz', description: 'Untersuche Korrosion als elektrochemischen Prozess und leite Schutzmaßnahmen ab.', status: 'active', target: 'corrosionOverview' },
     { id: 'batterien', title: 'Batterien und Akkumulatoren', description: 'Kommt später', status: 'coming-soon' },
   ];
 
@@ -29,6 +36,28 @@
     printButtonLabel: 'Aufgabe drucken / als PDF speichern',
     overviewButtonLabel: 'Zurück zur Aufgabenübersicht',
   };
+
+  const electrodeData = window.electrodePotentialData || {};
+  const electrodePotentialMeta = electrodeData.electrodePotentialMeta || {
+    title: 'Elektrodenpotenziale',
+    subtitle: 'Verstehe Elektrodenpotenziale und Zellspannungen.',
+  };
+  const electrodePotentialOverviewCards = electrodeData.electrodePotentialOverviewCards || [];
+  const electrodePotentialIntroPage = electrodeData.electrodePotentialIntroPage || {};
+  const standardHydrogenElectrodePage = electrodeData.standardHydrogenElectrodePage || {};
+  const electrodePotentialPracticeOverview = electrodeData.electrodePotentialPracticeOverview || { cards: [] };
+  const electrodePotentialPracticeExercises = electrodeData.electrodePotentialPracticeExercises || [];
+  const standardPotentials = electrodeData.standardPotentials || [];
+  const corrosionData = window.corrosionData || {};
+  const corrosionMeta = corrosionData.corrosionMeta || {
+    title: 'Korrosion und Korrosionsschutz',
+    subtitle: 'Verstehe, warum Eisen rostet und wie man Metalle schützen kann.',
+  };
+  const corrosionOverviewCards = corrosionData.corrosionOverviewCards || [];
+  const oxygenCorrosionPage = corrosionData.oxygenCorrosionPage || {};
+  const oxygenCorrosionExercises = corrosionData.oxygenCorrosionExercises || [];
+  const oxygenCorrosionSelfCheck = corrosionData.oxygenCorrosionSelfCheck || [];
+
 
   const selfCheckData = {
     title: 'Selbstcheck Elektrochemie',
@@ -160,6 +189,14 @@
     view: 'home',
     notice: '',
     selectedKlausurTaskId: '',
+    selectedElectrodeExerciseId: '',
+    electrodeAnswers: {},
+    electrodeChecked: {},
+    corrosionAnswers: {},
+    corrosionChecked: {},
+    corrosionSolutionsVisible: {},
+    corrosionSelfCheck: loadCorrosionSelfCheck(),
+    electrodeSheId: '',
     explanationStep: 0,
     selfCheck: loadSelfCheck(),
     practices: {
@@ -335,6 +372,19 @@
 
   function saveSelfCheck() {
     localStorage.setItem('elektrochemie-self-check', JSON.stringify(state.selfCheck));
+  }
+
+  function loadCorrosionSelfCheck() {
+    try {
+      return JSON.parse(localStorage.getItem('korrosion-self-check') || '{}');
+    } catch {
+      localStorage.removeItem('korrosion-self-check');
+      return {};
+    }
+  }
+
+  function saveCorrosionSelfCheck() {
+    localStorage.setItem('korrosion-self-check', JSON.stringify(state.corrosionSelfCheck));
   }
 
   function renderSelfCheck() {
@@ -532,6 +582,20 @@
   function stateClass(show, state) {
     if (!show || state === 'empty') return '';
     return state === 'correct' ? 'is-correct' : 'is-wrong';
+  }
+
+  function stableShuffleOptions(options, seed = '') {
+    const shuffled = [...(options || [])];
+    let hash = 0;
+    String(seed).split('').forEach((char) => {
+      hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    });
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      hash = (hash * 1664525 + 1013904223) >>> 0;
+      const swapIndex = hash % (index + 1);
+      [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+    return shuffled;
   }
 
   function directTaskCorrect(subtask, answer) {
@@ -767,6 +831,516 @@
   function findKlausurSubtask(taskId, subtaskId) {
     const task = klausurTasks.find((item) => item.id === taskId);
     return task ? task.subtasks.find((item) => item.id === subtaskId) : null;
+  }
+
+  function epNormalize(value) {
+    return String(value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/âˆ’|−/g, '-')
+      .replace(/â†’|→/g, '->')
+      .replace(/[Â²²]/g, '2')
+      .replace(/[Â³³]/g, '3')
+      .replace(/âº|⁺/g, '+')
+      .replace(/â»|⁻/g, '-')
+      .replace(/Ã¤|ä/g, 'ae')
+      .replace(/Ã¶|ö/g, 'oe')
+      .replace(/Ã¼|ü/g, 'ue')
+      .replace(/ÃŸ|ß/g, 'ss')
+      .replace(/\s+/g, ' ');
+  }
+
+  function epAccepted(value, accepted = []) {
+    const user = epNormalize(value);
+    return (accepted || []).some((candidate) => epNormalize(candidate) === user);
+  }
+
+  function epNumberOk(value, correctValue, tolerance = 0.01) {
+    const number = Number(String(value || '').replace(',', '.').replace(/[^\d.-]/g, ''));
+    return Number.isFinite(number) && Math.abs(number - correctValue) <= tolerance;
+  }
+
+  function epStatusClass(checked, ok, value = 'x') {
+    if (!checked || String(value || '').trim() === '') return '';
+    return ok ? 'is-correct' : 'is-wrong';
+  }
+
+  function epAnswerKey(exerciseId, key) {
+    return `${exerciseId}:${key}`;
+  }
+
+  function epAnswer(exerciseId, key) {
+    return state.electrodeAnswers[epAnswerKey(exerciseId, key)] || '';
+  }
+
+  function epFormatVoltage(value) {
+    const sign = value >= 0 ? '+' : '−';
+    return `${sign}${Math.abs(value).toFixed(2).replace('.', ',')} V`;
+  }
+
+  function epOperators(operators = []) {
+    if (!operators.length) return '';
+    return `<div class="operator-chips">${operators.map((operator) => `<span class="operator-chip afb-${String(operator.afb).toLowerCase()}">${esc(operator.name)} · AFB ${esc(operator.afb)}</span>`).join('')}</div>`;
+  }
+
+  function renderElectrodeModuleOverview() {
+    return `${pageHeader(electrodePotentialMeta.title, electrodePotentialMeta.subtitle)}
+      <button type="button" class="secondary-button back-button" data-nav="home">← zur Hauptübersicht</button>
+      <div class="module-card-grid">${electrodePotentialOverviewCards.map((card) => `
+        <button type="button" class="module-card" data-electrode-target="${esc(card.targetView)}">
+          ${card.icon ? `<span class="module-card-icon">${esc(card.icon)}</span>` : ''}
+          <h2>${esc(card.title)}</h2>
+          <p>${esc(card.description)}</p>
+          ${epOperators(card.operators)}
+          <span class="module-card-action">Öffnen →</span>
+        </button>`).join('')}</div>`;
+  }
+
+  function epInfoSections(sections = []) {
+    return `<div class="info-sections">${sections.map((section) => `
+      <section class="info-section">
+        <h2>${esc(section.title)}</h2>
+        ${(section.content || []).map((paragraph) => `<p>${esc(paragraph)}</p>`).join('')}
+        ${section.formula ? `<div class="formula-box">${esc(section.formula)}</div>` : ''}
+        ${section.keyIdea ? `<div class="key-idea"><strong>Merksatz:</strong> ${esc(section.keyIdea)}</div>` : ''}
+        ${section.labels ? `<div class="label-chip-row">${section.labels.map((label) => `<span class="label-chip">${esc(label)}</span>`).join('')}</div>` : ''}
+        ${section.example ? `<div class="example-box"><h3>${esc(section.example.title)}</h3><ul>${section.example.given.map((item) => `<li>${esc(item)}</li>`).join('')}</ul><ol>${section.example.solution.map((item) => `<li>${esc(item)}</li>`).join('')}</ol></div>` : ''}
+      </section>`).join('')}</div>`;
+  }
+
+  function renderElectrodeIntro() {
+    return `${pageHeader(electrodePotentialIntroPage.title, electrodePotentialIntroPage.subtitle)}
+      <button type="button" class="secondary-button back-button" data-nav="electrodePotentials">← zur Modulübersicht</button>
+      ${epInfoSections(electrodePotentialIntroPage.sections || [])}
+      ${renderElectrodeHalfCellSelector(electrodePotentialIntroPage.interactiveElement)}`;
+  }
+
+  function renderElectrodeHalfCellSelector(interactiveElement) {
+    if (!interactiveElement) return '';
+    const answerA = state.electrodeAnswers.epHalfA || interactiveElement.defaultSelection?.halfCellA || interactiveElement.potentials?.[0]?.id || '';
+    const answerB = state.electrodeAnswers.epHalfB || interactiveElement.defaultSelection?.halfCellB || interactiveElement.potentials?.[1]?.id || '';
+    const a = standardPotentials.find((item) => item.id === answerA);
+    const b = standardPotentials.find((item) => item.id === answerB);
+    const result = a && b && a.id !== b.id ? (() => {
+      const cathode = a.potential > b.potential ? a : b;
+      const anode = a.potential > b.potential ? b : a;
+      return { cathode, anode, voltage: cathode.potential - anode.potential };
+    })() : null;
+    return `<section class="interactive-box">
+      <h2>${esc(interactiveElement.title)}</h2>
+      <p>${esc(interactiveElement.instruction)}</p>
+      <div class="selector-row">${['epHalfA', 'epHalfB'].map((key, index) => `<label>Halbzelle ${index + 1}<select data-ep-state="${key}">${interactiveElement.potentials.map((potential) => `<option value="${esc(potential.id)}" ${state.electrodeAnswers[key] === potential.id || (!state.electrodeAnswers[key] && ((index === 0 && potential.id === answerA) || (index === 1 && potential.id === answerB))) ? 'selected' : ''}>${esc(potential.redoxPair)} (${epFormatVoltage(potential.potential)})</option>`).join('')}</select></label>`).join('')}</div>
+      ${result ? `<div class="result-box"><p><strong>Anode:</strong> ${esc(result.anode.redoxPair)} — Oxidation</p><p><strong>Kathode:</strong> ${esc(result.cathode.redoxPair)} — Reduktion</p><p><strong>Elektronenfluss:</strong> außen von ${esc(result.anode.symbol)} zu ${esc(result.cathode.symbol)}</p><p><strong>Zellspannung:</strong> ${result.voltage.toFixed(2).replace('.', ',')} V</p></div>` : '<p class="hint-text">Wähle zwei unterschiedliche Halbzellen aus.</p>'}
+    </section>`;
+  }
+
+  function renderElectrodeShe() {
+    const simulation = standardHydrogenElectrodePage.simulation;
+    const selectedId = state.electrodeSheId || simulation?.selectableHalfCells?.[0]?.id || '';
+    const selected = simulation?.selectableHalfCells?.find((cell) => cell.id === selectedId) || simulation?.selectableHalfCells?.[0];
+    const metalIsCathode = (selected?.potential ?? 0) > (simulation?.referenceElectrode?.potential ?? 0);
+    const voltage = Math.abs((selected?.potential ?? 0) - (simulation?.referenceElectrode?.potential ?? 0));
+    return `${pageHeader(standardHydrogenElectrodePage.title, standardHydrogenElectrodePage.subtitle)}
+      <button type="button" class="secondary-button back-button" data-nav="electrodePotentials">← zur Modulübersicht</button>
+      ${epInfoSections(standardHydrogenElectrodePage.sections || [])}
+      ${simulation ? `<section class="interactive-box she-simulation">
+        <h2>${esc(simulation.title)}</h2><p>${esc(simulation.instruction)}</p>
+        <label class="single-select">Metallhalbzelle auswählen<select data-ep-she>${simulation.selectableHalfCells.map((cell) => `<option value="${esc(cell.id)}" ${cell.id === selectedId ? 'selected' : ''}>${esc(cell.redoxPair)} (${epFormatVoltage(cell.potential)})</option>`).join('')}</select></label>
+        <div class="she-visual"><div class="half-cell-card"><h3>${esc(simulation.referenceElectrode.title)}</h3><p class="large-symbol">Pt | H₂ | H⁺</p><p>E° = 0,00 V</p><div class="bubble-row"><span>H₂</span><span>H₂</span><span>H₂</span></div></div><div class="voltmeter-card"><span class="electron-arrow">e⁻ ${metalIsCathode ? '←' : '→'}</span><strong>${voltage.toFixed(2).replace('.', ',')} V</strong></div><div class="half-cell-card"><h3>${esc(selected.title)}</h3><p class="large-symbol">${esc(selected.redoxPair)}</p><p>E° = ${epFormatVoltage(selected.potential)}</p></div></div>
+        <div class="result-box"><p><strong>Anode:</strong> ${metalIsCathode ? 'Standardwasserstoffelektrode' : esc(selected.title)}</p><p><strong>Kathode:</strong> ${metalIsCathode ? esc(selected.title) : 'Standardwasserstoffelektrode'}</p><p><strong>Oxidation:</strong> ${esc(selected.oxidation)}</p><p><strong>Reduktion:</strong> ${esc(selected.reduction)}</p></div>
+        <div class="explanation-list">${(selected.explanation || []).map((item) => `<p>${esc(item)}</p>`).join('')}</div>
+      </section>` : ''}`;
+  }
+
+  function renderElectrodePracticeOverview() {
+    return `${pageHeader(electrodePotentialPracticeOverview.title, electrodePotentialPracticeOverview.subtitle)}
+      <button type="button" class="secondary-button back-button" data-nav="electrodePotentials">← zur Modulübersicht</button>
+      <div class="module-card-grid">${(electrodePotentialPracticeOverview.cards || []).map((card) => `<button type="button" class="module-card" data-electrode-exercise="${esc(card.targetExerciseId)}"><h2>${esc(card.title)}</h2><p>${esc(card.description)}</p>${epOperators(card.operators)}<span class="module-card-action">Öffnen →</span></button>`).join('')}</div>`;
+  }
+
+  function epMaterials(materials = []) {
+    return materials.length ? `<div class="materials">${materials.map(renderMaterial).join('')}</div>` : '';
+  }
+
+  function epModel(id, text) {
+    return `<div class="model-answer-wrapper"><button type="button" class="secondary-button" data-ep-model="${esc(id)}">Musterlösung anzeigen</button><div class="model-answer" data-ep-model-box="${esc(id)}" hidden><strong>Musterlösung:</strong><p>${esc(text)}</p></div></div>`;
+  }
+
+  function renderElectrodeExercise() {
+    const exercise = electrodePotentialPracticeExercises.find((item) => item.id === state.selectedElectrodeExerciseId);
+    if (!exercise) return renderElectrodePracticeOverview();
+    return `${pageHeader(exercise.title, exercise.description)}
+      <button type="button" class="secondary-button back-button" data-nav="electrodePotentialPracticeOverview">← zur Übungsübersicht</button>
+      ${renderEpExerciseContent(exercise)}`;
+  }
+
+  function renderEpExerciseContent(exercise) {
+    if (exercise.type === 'matchingExercise') return renderEpMatching(exercise);
+    if (exercise.type === 'halfCellChoiceExercise') return renderEpStructuredFields(exercise);
+    if (exercise.type === 'calculationExercise') return renderEpCalculation(exercise);
+    if (exercise.type === 'redoxEquationScaffold') return renderEpScaffold(exercise);
+    if (exercise.type === 'mixedExercise') return renderEpMixed(exercise);
+    return `<section class="task-box"><p>Dieser Übungstyp wird noch nicht unterstützt: ${esc(exercise.type)}</p></section>`;
+  }
+
+  function renderEpMatching(exercise) {
+    const checked = !!state.electrodeChecked[exercise.id];
+    const task = exercise.tasks[0];
+    return `<div class="exercise-content">${epMaterials(exercise.materials)}<section class="task-box"><h2>${esc(task.prompt)}</h2><div class="matching-grid">${task.pairs.map((pair) => {
+      const key = epAnswerKey(exercise.id, pair.left);
+      const value = state.electrodeAnswers[key] || '';
+      return `<label class="matching-row"><span>${esc(pair.left)}</span><select data-ep-answer="${esc(key)}" class="${epStatusClass(checked, value === pair.correctRight, value)}"><option value="">Bitte auswählen</option>${task.rightOptions.map((option) => `<option value="${esc(option)}" ${value === option ? 'selected' : ''}>${esc(option)}</option>`).join('')}</select></label>`;
+    }).join('')}</div><button type="button" class="primary-button" data-ep-check="${esc(exercise.id)}">Antwort prüfen</button>${checked ? epModel(`${exercise.id}-model`, exercise.modelAnswer) : ''}</section></div>`;
+  }
+
+  function renderEpStructuredFields(exercise) {
+    const checked = !!state.electrodeChecked[exercise.id];
+    return `<div class="exercise-content">${epMaterials(exercise.materials)}${exercise.tasks.map((task) => `<section class="task-box"><h2>${esc(task.prompt)}</h2><div class="structured-field-grid">${task.fields.map((field) => {
+      const key = epAnswerKey(exercise.id, `${task.id}-${field.id}`);
+      const value = state.electrodeAnswers[key] || '';
+      return `<label>${esc(field.label)}<input data-ep-answer="${esc(key)}" value="${esc(value)}" class="${epStatusClass(checked, epAccepted(value, field.correctValues), value)}" /></label>`;
+    }).join('')}</div></section>`).join('')}<button type="button" class="primary-button" data-ep-check="${esc(exercise.id)}">Antwort prüfen</button>${checked ? epModel(`${exercise.id}-model`, exercise.modelAnswer) : ''}</div>`;
+  }
+
+  function renderEpCalculation(exercise) {
+    const checked = !!state.electrodeChecked[exercise.id];
+    return `<div class="exercise-content">${exercise.formula ? `<div class="formula-box">${esc(exercise.formula)}</div>` : ''}${epMaterials(exercise.materials)}${exercise.tasks.map((task) => `<section class="task-box"><h2>${esc(task.prompt)}</h2><div class="calculation-grid">${task.fields.map((field) => {
+      const key = epAnswerKey(exercise.id, `${task.id}-${field.id}`);
+      const value = state.electrodeAnswers[key] || '';
+      return `<label>${esc(field.label)}<input inputmode="decimal" data-ep-answer="${esc(key)}" value="${esc(value)}" class="${epStatusClass(checked, epNumberOk(value, field.correctValue, task.tolerance || exercise.tolerance || 0.01), value)}" /></label>`;
+    }).join('')}</div>${checked && task.modelAnswer ? epModel(`${task.id}-model`, task.modelAnswer) : ''}</section>`).join('')}<button type="button" class="primary-button" data-ep-check="${esc(exercise.id)}">Antwort prüfen</button></div>`;
+  }
+
+  function renderEpScaffold(exercise) {
+    const checked = !!state.electrodeChecked[exercise.id];
+    return `<div class="exercise-content">${epMaterials(exercise.materials)}<section class="task-box"><h2>${esc(exercise.prompt || '')}</h2><p>${esc(exercise.scaffold?.instruction || '')}</p><div class="equation-scaffold-list">${(exercise.scaffold?.equations || []).map((equation, equationIndex) => `<div class="equation-row"><strong>${esc(equation.label)}:</strong><div class="equation-line">${equation.parts.map((part, partIndex) => renderEpEquationPart(exercise.id, equationIndex, partIndex, part, checked)).join('')}</div>${checked ? `<p class="expected-display">Lösung: ${esc(equation.expectedDisplay)}</p>` : ''}</div>`).join('')}</div><button type="button" class="primary-button" data-ep-check="${esc(exercise.id)}">Antwort prüfen</button>${checked ? epModel(`${exercise.id}-model`, exercise.modelAnswer) : ''}</section></div>`;
+  }
+
+  function renderEpEquationInput(exerciseId, key, config, checked) {
+    const storageKey = epAnswerKey(exerciseId, key);
+    const value = state.electrodeAnswers[storageKey] || '';
+    return `<input class="equation-input ${epStatusClass(checked, epAccepted(value, config.accepted || [config.correct]), value)}" data-ep-answer="${esc(storageKey)}" value="${esc(value)}" />`;
+  }
+
+  function renderEpEquationPart(exerciseId, equationIndex, partIndex, part, checked) {
+    const path = `${equationIndex}-${partIndex}`;
+    if (part.type === 'plus') return '<span class="equation-symbol">+</span>';
+    if (part.type === 'arrow') return '<span class="equation-symbol">→</span>';
+    if (part.type === 'electron') return `<span class="equation-electron">${renderEpEquationInput(exerciseId, `${path}-coefficient`, part.coefficient, checked)} <span>e</span><sup>${renderEpEquationInput(exerciseId, `${path}-charge`, part.charge, checked)}</sup></span>`;
+    return `<span class="equation-particle">${renderEpEquationInput(exerciseId, `${path}-coefficient`, part.coefficient, checked)}${part.formula.map((item, index) => `<span class="formula-unit">${renderEpEquationInput(exerciseId, `${path}-formula-${index}-element`, item.element, checked)}<sub>${renderEpEquationInput(exerciseId, `${path}-formula-${index}-index`, item.index, checked)}</sub><sup>${renderEpEquationInput(exerciseId, `${path}-formula-${index}-charge`, item.charge, checked)}</sup></span>`).join('')}</span>`;
+  }
+
+  function renderEpMixed(exercise) {
+    const calcChecked = !!state.electrodeChecked[`${exercise.id}-calculation`];
+    const criteriaVisible = !!state.electrodeCriteriaVisible[exercise.id];
+    const calc = exercise.calculationPart;
+    const freeText = exercise.freeTextPart;
+    const textKey = epAnswerKey(exercise.id, 'freeText');
+    const textValue = state.electrodeAnswers[textKey] || '';
+    return `<div class="exercise-content">${epMaterials(exercise.materials)}<section class="task-box"><h2>${esc(calc.prompt)}</h2><div class="calculation-grid">${calc.fields.map((field) => {
+      const key = epAnswerKey(exercise.id, `calc-${field.id}`);
+      const value = state.electrodeAnswers[key] || '';
+      return `<label>${esc(field.label)}<input inputmode="decimal" data-ep-answer="${esc(key)}" value="${esc(value)}" class="${epStatusClass(calcChecked, epNumberOk(value, field.correctValue, calc.tolerance || 0.01), value)}" /></label>`;
+    }).join('')}</div><button type="button" class="primary-button" data-ep-check="${esc(exercise.id)}-calculation">Rechnung prüfen</button>${calcChecked ? epModel(`${exercise.id}-calc-model`, calc.modelAnswer) : ''}</section><section class="task-box"><h2>${esc(freeText.prompt)}</h2><textarea class="free-text-area" data-ep-answer="${esc(textKey)}">${esc(textValue)}</textarea><button type="button" class="primary-button" data-ep-criteria="${esc(exercise.id)}">${criteriaVisible ? 'Antwort erneut überprüfen' : 'Antwort überprüfen'}</button>${criteriaVisible ? renderEpCriteria(freeText.criteria, textValue) + epModel(`${exercise.id}-text-model`, freeText.modelAnswer) : ''}</section></div>`;
+  }
+
+  function renderEpCriteria(criteria = [], answer = '') {
+    const normalizedAnswer = epNormalize(answer);
+    return `<div class="criteria-box"><h3>Deine Antwort enthält:</h3><ul>${criteria.map((criterion) => {
+      const met = epCriterionMet(criterion, normalizedAnswer);
+      return `<li class="${met ? 'criterion-met' : 'criterion-open'}">${met ? '✓' : '○'} ${esc(criterion.label)}</li>`;
+    }).join('')}</ul></div>`;
+  }
+
+  function epCriterionMet(criterion, normalizedAnswer) {
+    if (criterion.matchMode === 'allGroups') return criterion.keywordGroups.every((group) => group.some((keyword) => normalizedAnswer.includes(epNormalize(keyword))));
+    if (criterion.matchMode === 'atLeastGroups') return criterion.keywordGroups.filter((group) => group.some((keyword) => normalizedAnswer.includes(epNormalize(keyword)))).length >= criterion.requiredGroups;
+    if (criterion.matchMode === 'all') return (criterion.keywords || []).every((keyword) => normalizedAnswer.includes(epNormalize(keyword)));
+    return (criterion.keywords || []).some((keyword) => normalizedAnswer.includes(epNormalize(keyword)));
+  }
+
+  function renderCorrosionOverview() {
+    return `${pageHeader(corrosionMeta.title || 'Korrosion und Korrosionsschutz', corrosionMeta.subtitle || '')}
+      <button type="button" class="secondary-button back-button" data-nav="home">← zur Hauptübersicht</button>
+      <div class="module-card-grid">${corrosionOverviewCards.map((card) => `
+        <button type="button" class="module-card ${card.status === 'coming-soon' ? 'is-disabled' : ''}" ${card.status === 'coming-soon' ? 'data-corrosion-disabled="true"' : `data-nav="${esc(card.target)}"`}>
+          ${card.badge ? `<span class="tile-card__badge">${esc(card.badge)}</span>` : ''}
+          <h2>${esc(card.title)}</h2>
+          <p>${esc(card.description)}</p>
+          ${card.level ? `<div class="operator-chips"><span class="operator-chip">${esc(card.level)}</span></div>` : ''}
+          <span class="module-card-action">${card.status === 'coming-soon' ? 'Kommt später' : 'Öffnen →'}</span>
+        </button>`).join('')}</div>`;
+  }
+
+  function renderOxygenCorrosion() {
+    const page = oxygenCorrosionPage || {};
+    return `${pageHeader(page.title || 'Sauerstoffkorrosion – wenn Eisen rostet', '')}
+      <button type="button" class="secondary-button back-button" data-nav="corrosionOverview">← zur Korrosionsübersicht</button>
+      <section class="given-card">
+        <p>Bearbeite die Aufgaben zur Sauerstoffkorrosion selbstständig. Nutze dein Arbeitsblatt, dein Heft und die Reaktionsgleichungen aus dem Unterricht. Überprüfe deine Lösungen anschließend mit der Selbstkontrolle.</p>
+      </section>
+      <section class="task-list">
+        <h2>Übungen zur Sauerstoffkorrosion</h2>
+        ${oxygenCorrosionExercises.map((exercise, index) => renderCorrosionExercise(exercise, index)).join('')}
+      </section>
+      ${renderCorrosionSelfCheck()}`;
+  }
+
+  function renderCorrosionLearningGoals(goals) {
+    if (!goals.length) return '';
+    return `<section class="material-block"><h2>Lernziele</h2><ul class="material-list">${goals.map((goal) => `<li>${esc(goal)}</li>`).join('')}</ul></section>`;
+  }
+
+  function renderCorrosionInfoCards(cards) {
+    if (!cards.length) return '';
+    return `<div class="info-sections">${cards.map((card) => `
+      <section class="info-section">
+        <h2>${esc(card.title)}</h2>
+        <p>${esc(card.text)}</p>
+        ${card.formula ? `<div class="formula-box">${esc(card.formula)}</div>` : ''}
+        ${card.focus ? `<div class="label-chip-row">${card.focus.map((item) => `<span class="label-chip">${esc(item)}</span>`).join('')}</div>` : ''}
+      </section>`).join('')}</div>`;
+  }
+
+  function renderCorrosionKeyTerms(terms) {
+    if (!terms.length) return '';
+    return `<section class="material-block"><h2>Fachbegriffe</h2><div class="choice-group-grid">${terms.map((item) => `
+      <article class="form-row"><h3>${esc(item.term)}</h3><p>${esc(item.explanation)}</p></article>`).join('')}</div></section>`;
+  }
+
+  function corrosionAnswer(id, fallback = '') {
+    return state.corrosionAnswers[id] ?? fallback;
+  }
+
+  function setCorrosionAnswer(id, value) {
+    state.corrosionAnswers[id] = value;
+  }
+
+  function renderCorrosionExercise(exercise, index) {
+    const checked = !!state.corrosionChecked[exercise.id];
+    const solutionVisible = !!state.corrosionSolutionsVisible[exercise.id];
+    const directFeedback = checked ? corrosionFeedback(exercise) : '';
+    return `<article class="subtask-card corrosion-exercise" id="${esc(exercise.id)}">
+      <h3>${index + 1}. ${esc(exercise.title)} <span class="operator-chip">${esc(exercise.afb || '')}</span></h3>
+      <p>${esc(exercise.prompt)}</p>
+      ${renderCorrosionExerciseControl(exercise, checked)}
+      <div class="button-row">
+        <button type="button" class="check-answer-button" data-corrosion-check="${esc(exercise.id)}">Antwort prüfen</button>
+        <button type="button" class="secondary-button" data-corrosion-solution="${esc(exercise.id)}">${solutionVisible ? 'Musterlösung ausblenden' : 'Musterlösung anzeigen'}</button>
+      </div>
+      ${directFeedback}
+      ${solutionVisible ? `<section class="solution-card solution-card--compact"><h4>Musterlösung</h4><p>${esc(exercise.modelAnswer || '')}</p></section>` : ''}
+    </article>`;
+  }
+
+  function renderCorrosionExerciseControl(exercise, checked) {
+    if (exercise.type === 'shortAnswer' || exercise.type === 'freeTextCriteria' || exercise.type === 'summaryText') {
+      const value = corrosionAnswer(exercise.id, '');
+      return `<textarea class="answer-input" rows="5" data-corrosion-text="${esc(exercise.id)}" placeholder="Antwort eingeben …">${esc(value)}</textarea>`;
+    }
+    if (exercise.type === 'structuredFields') {
+      const answer = corrosionAnswer(exercise.id, {});
+      return `<div class="choice-group-grid">${(exercise.fields || []).map((field) => {
+        const value = answer[field.id] || '';
+        const state = checked ? directState(value, field.correctValues || []) : '';
+        return `<label class="klausur-select"><span>${esc(field.label)}</span><input class="${stateClass(checked, state)}" data-corrosion-field="${esc(exercise.id)}" data-field-id="${esc(field.id)}" value="${esc(value)}" /></label>`;
+      }).join('')}</div>`;
+    }
+    if (exercise.type === 'imageMatching') return renderCorrosionImageMatching(exercise, checked);
+    if (exercise.type === 'redoxEquationScaffold') return renderCorrosionEquationScaffold(exercise, checked);
+    if (exercise.type === 'matching') return renderCorrosionMatching(exercise, checked);
+    return `<p class="hint-text">Für diesen Aufgabentyp ist noch keine Darstellung hinterlegt.</p>`;
+  }
+
+  function renderCorrosionImageMatching(exercise, checked) {
+    const answer = corrosionAnswer(exercise.id, {});
+    const imageSrc = exercise.image || oxygenCorrosionPage?.imageMatching?.image || '';
+    const fallbackSrc = exercise.fallbackImage || oxygenCorrosionPage?.imageMatching?.fallbackImage || '';
+    const options = stableShuffleOptions(exercise.options || [], exercise.id);
+    return `<div class="corrosion-image-matching">
+      <figure class="corrosion-image-matching__figure"><img src="${esc(assetSrc(imageSrc))}" alt="${esc(exercise.alt || 'Sauerstoffkorrosion mit Zahlen')}" onerror="${fallbackSrc ? `this.onerror=null;this.src='${esc(assetSrc(fallbackSrc))}'` : 'this.hidden=true'}" /></figure>
+      <div class="choice-group-grid">${(exercise.fields || []).map((field) => {
+        const value = answer[field.number] || '';
+        const state = checked ? directState(value, [field.correct]) : '';
+        return `<label class="klausur-select"><span>Zahl ${esc(field.number)}</span><select class="${stateClass(checked, state)}" data-corrosion-image-match="${esc(exercise.id)}" data-number="${esc(field.number)}"><option value="">Bitte wählen</option>${options.map((option) => `<option value="${esc(option)}" ${value === option ? 'selected' : ''}>${esc(option)}</option>`).join('')}</select></label>`;
+      }).join('')}</div>
+    </div>`;
+  }
+
+  function renderCorrosionMatching(exercise, checked) {
+    const answer = corrosionAnswer(exercise.id, {});
+    const options = stableShuffleOptions(exercise.rightOptions || [], exercise.id);
+    return `<div class="choice-group-grid">${(exercise.pairs || []).map((pair, index) => {
+      const value = answer[pair.left] || '';
+      const state = checked ? directState(value, [pair.correctRight]) : '';
+      return `<label class="klausur-select"><span>${esc(pair.left)}</span><select class="${stateClass(checked, state)}" data-corrosion-match="${esc(exercise.id)}" data-left="${esc(pair.left)}"><option value="">Bitte wählen</option>${options.map((option) => `<option value="${esc(option)}" ${value === option ? 'selected' : ''}>${esc(option)}</option>`).join('')}</select></label>`;
+    }).join('')}</div>`;
+  }
+
+  function renderCorrosionEquationScaffold(exercise, checked) {
+    const scaffold = exercise.scaffold || {};
+    return `<div class="equation-scaffold">
+      ${scaffold.instruction ? `<p class="klausur-instruction">${esc(scaffold.instruction)}</p>` : ''}
+      ${(scaffold.equations || []).map((equation, equationIndex) => {
+        const answerText = corrosionEquationAnswer(exercise.id, equationIndex);
+        const state = checked ? directState(answerText, [equation.expectedDisplay, normalizeEquationDisplay(equation.expectedDisplay)]) : '';
+        return `<section class="klausur-structured-equation ${stateClass(checked, state)}">
+          <h4>${esc(equation.label)}</h4>
+          ${renderCorrosionEquationParts(exercise, equation, equationIndex)}
+          <div class="chemical-preview" aria-live="polite">Vorschau: <strong data-corrosion-equation-preview="${esc(exercise.id)}:${equationIndex}">${displayEquation(answerText) || '—'}</strong></div>
+        </section>`;
+      }).join('')}
+    </div>`;
+  }
+
+  function renderCorrosionEquationParts(exercise, equation, equationIndex) {
+    const answers = corrosionAnswer(exercise.id, {});
+    const equationAnswers = answers[equationIndex] || {};
+    return `<section class="structured-equation" aria-label="Strukturierte chemische Eingabe">
+      <p class="structured-equation__hint">Trage die Gleichung in die Felder ein. Pluszeichen und Pfeil sind vorgegeben.</p>
+      <div class="structured-equation__row">${(equation.parts || []).map((part, partIndex) => renderCorrosionEquationPart(exercise.id, equationIndex, partIndex, part, equationAnswers[partIndex] || {})).join('')}</div>
+    </section>`;
+  }
+
+  function renderCorrosionEquationPart(exerciseId, equationIndex, partIndex, part, answer) {
+    if (part.type === 'plus') return `<span class="equation-fixed">+</span>`;
+    if (part.type === 'arrow') return `<span class="equation-fixed">→</span>`;
+    if (part.type === 'electron') {
+      return `<span class="particle-input">
+        ${corrosionEquationInput(exerciseId, equationIndex, partIndex, 'coefficient', 'Koeffizient', answer.coefficient || '', 'particle-field--coefficient', 'numeric', '1')}
+        <span class="particle-fixed-field particle-field--formula">e</span>
+        <span class="particle-fixed-field particle-field--charge">⁻</span>
+      </span>`;
+    }
+    if (part.type === 'particle') {
+      return `<span class="particle-input">
+        ${corrosionEquationInput(exerciseId, equationIndex, partIndex, 'coefficient', 'Koeffizient', answer.coefficient || '', 'particle-field--coefficient', 'numeric', '1')}
+        ${(part.formula || []).map((segment, segmentIndex) => `
+          ${corrosionEquationInput(exerciseId, equationIndex, partIndex, `formula.${segmentIndex}.element`, 'Elementsymbol/Formel', answer?.formula?.[segmentIndex]?.element || '', 'particle-field--formula', '', 'Symbol')}
+          ${corrosionEquationInput(exerciseId, equationIndex, partIndex, `formula.${segmentIndex}.index`, 'Index', answer?.formula?.[segmentIndex]?.index || '', 'particle-field--index', 'numeric', 'Index')}
+          ${corrosionEquationInput(exerciseId, equationIndex, partIndex, `formula.${segmentIndex}.charge`, 'Ladung', answer?.formula?.[segmentIndex]?.charge || '', 'particle-field--charge', '', 'Ladung')}
+        `).join('')}
+      </span>`;
+    }
+    return '';
+  }
+
+  function corrosionEquationInput(exerciseId, equationIndex, partIndex, field, label, value, className, inputMode = '', placeholder = '') {
+    return `<label class="particle-field ${className}"><span class="sr-only">${esc(label)}</span><input ${inputMode ? `inputmode="${inputMode}"` : ''} ${placeholder ? `placeholder="${esc(placeholder)}"` : ''} value="${esc(value)}" data-corrosion-equation="${esc(exerciseId)}" data-equation-index="${equationIndex}" data-part-index="${partIndex}" data-equation-field="${esc(field)}" /></label>`;
+  }
+
+  function normalizeEquationDisplay(value) {
+    return String(value || '').replace(/→/g, '->').replace(/₂/g, '2').replace(/²/g, '2').replace(/⁺/g, '+').replace(/⁻/g, '-').replace(/₃/g, '3').replace(/₄/g, '4');
+  }
+
+  function corrosionEquationAnswer(exerciseId, equationIndex) {
+    const exercise = oxygenCorrosionExercises.find((item) => item.id === exerciseId);
+    const equation = exercise?.scaffold?.equations?.[equationIndex];
+    const answers = corrosionAnswer(exerciseId, {});
+    const equationAnswers = answers[equationIndex] || {};
+    return (equation?.parts || [])
+      .map((part, partIndex) => corrosionEquationPartToText(part, equationAnswers[partIndex] || {}))
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  function corrosionEquationPartToText(part, answer) {
+    if (part.type === 'plus') return '+';
+    if (part.type === 'arrow') return '->';
+    if (part.type === 'electron') {
+      const coefficient = clean(answer.coefficient);
+      return `${coefficient && coefficient !== '1' ? `${coefficient} ` : ''}e-`;
+    }
+    if (part.type === 'particle') {
+      const coefficient = clean(answer.coefficient);
+      const formulaText = (answer.formula || [])
+        .map((segment) => `${clean(segment?.element)}${clean(segment?.index)}${clean(segment?.charge)}`)
+        .join('');
+      if (!formulaText) return '';
+      return `${coefficient && coefficient !== '1' ? `${coefficient} ` : ''}${formulaText}`;
+    }
+    return '';
+  }
+
+  function updateCorrosionEquationAnswer(input) {
+    const exerciseId = input.dataset.corrosionEquation;
+    const equationIndex = Number(input.dataset.equationIndex);
+    const partIndex = Number(input.dataset.partIndex);
+    const path = input.dataset.equationField;
+    const answer = { ...(corrosionAnswer(exerciseId, {})) };
+    const equationAnswer = { ...(answer[equationIndex] || {}) };
+    const partAnswer = { ...(equationAnswer[partIndex] || {}) };
+
+    if (path === 'coefficient') {
+      partAnswer.coefficient = input.value;
+    } else if (path.startsWith('formula.')) {
+      const [, indexText, field] = path.split('.');
+      const segmentIndex = Number(indexText);
+      const formulaAnswers = Array.isArray(partAnswer.formula) ? [...partAnswer.formula] : [];
+      formulaAnswers[segmentIndex] = { ...(formulaAnswers[segmentIndex] || {}), [field]: input.value };
+      partAnswer.formula = formulaAnswers;
+    }
+
+    equationAnswer[partIndex] = partAnswer;
+    answer[equationIndex] = equationAnswer;
+    setCorrosionAnswer(exerciseId, answer);
+    const preview = document.querySelector(`[data-corrosion-equation-preview="${exerciseId}:${equationIndex}"]`);
+    if (preview) preview.textContent = displayEquation(corrosionEquationAnswer(exerciseId, equationIndex)) || '—';
+  }
+
+  function corrosionFeedback(exercise) {
+    if (exercise.type === 'redoxEquationScaffold') {
+      const allCorrect = (exercise.scaffold?.equations || []).every((equation, index) => directValueMatches(corrosionEquationAnswer(exercise.id, index), [equation.expectedDisplay, normalizeEquationDisplay(equation.expectedDisplay)]));
+      return `<p class="${allCorrect ? 'direct-feedback direct-feedback--correct' : 'direct-feedback direct-feedback--wrong'}">${allCorrect ? 'Richtig.' : 'Noch nicht ganz richtig. Prüfe die Reaktionsgleichung und den Elektronenausgleich.'}</p>`;
+    }
+    if (exercise.type === 'structuredFields') {
+      const answer = corrosionAnswer(exercise.id, {});
+      const allCorrect = (exercise.fields || []).every((field) => directValueMatches(answer[field.id], field.correctValues || []));
+      return `<p class="${allCorrect ? 'direct-feedback direct-feedback--correct' : 'direct-feedback direct-feedback--wrong'}">${allCorrect ? 'Richtig.' : 'Noch nicht ganz richtig. Prüfe die Fachbegriffe.'}</p>`;
+    }
+    if (exercise.type === 'imageMatching') {
+      const answer = corrosionAnswer(exercise.id, {});
+      const allCorrect = (exercise.fields || []).every((field) => answer[field.number] === field.correct);
+      return `<p class="${allCorrect ? 'direct-feedback direct-feedback--correct' : 'direct-feedback direct-feedback--wrong'}">${allCorrect ? 'Richtig zugeordnet.' : 'Noch nicht alles richtig zugeordnet. Vergleiche die Positionen im Bild.'}</p>`;
+    }
+    if (exercise.type === 'matching') {
+      const answer = corrosionAnswer(exercise.id, {});
+      const allCorrect = (exercise.pairs || []).every((pair) => answer[pair.left] === pair.correctRight);
+      return `<p class="${allCorrect ? 'direct-feedback direct-feedback--correct' : 'direct-feedback direct-feedback--wrong'}">${allCorrect ? 'Alle Fachbegriffe stimmen.' : 'Prüfe noch einmal die Begriffe Oxidation, Reduktion, Anode und Kathode.'}</p>`;
+    }
+    if (exercise.type === 'shortAnswer') {
+      const answer = normalizeCriteriaText(corrosionAnswer(exercise.id, ''));
+      const hits = (exercise.expectedKeywords || []).filter((keyword) => answer.includes(normalizeCriteriaText(keyword))).length;
+      return `<section class="criteria-card"><h4>Selbstkontrolle</h4><p>Gefundene Kernbegriffe: ${hits} von ${(exercise.expectedKeywords || []).length}</p><p class="criteria-note">Vergleiche deine Antwort anschließend mit der Musterlösung.</p></section>`;
+    }
+    if (exercise.type === 'freeTextCriteria') return renderCorrosionCriteria(exercise.criteria || [], corrosionAnswer(exercise.id, ''));
+    if (exercise.type === 'summaryText') return renderCorrosionRequiredTerms(exercise.requiredTerms || [], corrosionAnswer(exercise.id, ''));
+    return '';
+  }
+
+  function renderCorrosionCriteria(criteria, answer) {
+    const normalized = normalizeCriteriaText(answer);
+    return `<section class="criteria-card"><h4>Deine Antwort enthält:</h4><div class="criteria-list">${criteria.map((criterion) => {
+      const words = normalizeCriteriaText(criterion).split(' ').filter((word) => word.length > 3);
+      const hit = words.some((word) => normalized.includes(word));
+      return `<label class="criteria-item"><input type="checkbox" ${hit ? 'checked' : ''} readonly /><span>${esc(criterion)}</span></label>`;
+    }).join('')}</div><p class="criteria-note">Der Check ist eine Hilfe. Entscheidend ist, ob deine Erklärung fachlich zusammenhängend ist.</p></section>`;
+  }
+
+  function renderCorrosionRequiredTerms(terms, answer) {
+    const normalized = normalizeCriteriaText(answer);
+    return `<section class="criteria-card"><h4>Verwendete Pflichtbegriffe:</h4><div class="criteria-list">${terms.map((term) => {
+      const hit = normalized.includes(normalizeCriteriaText(term));
+      return `<label class="criteria-item"><input type="checkbox" ${hit ? 'checked' : ''} readonly /><span>${esc(term)}</span></label>`;
+    }).join('')}</div></section>`;
+  }
+
+  function renderCorrosionSelfCheck() {
+    if (!oxygenCorrosionSelfCheck.length) return '';
+    return `<section class="self-check-section"><h2>Selbstcheck</h2><div class="self-check-items">${oxygenCorrosionSelfCheck.map((item, index) => {
+      const itemId = `oxygen-corrosion-${index}`;
+      return `<label class="self-check-item"><input type="checkbox" data-corrosion-self-check="${itemId}" ${state.corrosionSelfCheck[itemId] ? 'checked' : ''} /><span>${esc(item)}</span></label>`;
+    }).join('')}</div></section>`;
   }
 
   function renderOverview() {
@@ -1026,9 +1600,81 @@
 
   function bindEvents() {
     document.querySelectorAll('[data-nav]').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.nav)));
+    document.querySelectorAll('[data-corrosion-disabled]').forEach((button) => button.addEventListener('click', () => {
+      state.notice = 'Dieses Korrosionsmodul wird später ergänzt.';
+      render();
+    }));
+    document.querySelectorAll('[data-corrosion-text]').forEach((input) => input.addEventListener('input', () => {
+      setCorrosionAnswer(input.dataset.corrosionText, input.value);
+    }));
+    document.querySelectorAll('[data-corrosion-field]').forEach((input) => input.addEventListener('input', () => {
+      const current = { ...(corrosionAnswer(input.dataset.corrosionField, {})) };
+      current[input.dataset.fieldId] = input.value;
+      setCorrosionAnswer(input.dataset.corrosionField, current);
+    }));
+    document.querySelectorAll('[data-corrosion-image-match]').forEach((select) => select.addEventListener('change', () => {
+      const current = { ...(corrosionAnswer(select.dataset.corrosionImageMatch, {})) };
+      current[select.dataset.number] = select.value;
+      setCorrosionAnswer(select.dataset.corrosionImageMatch, current);
+      render();
+    }));
+    document.querySelectorAll('[data-corrosion-match]').forEach((select) => select.addEventListener('change', () => {
+      const current = { ...(corrosionAnswer(select.dataset.corrosionMatch, {})) };
+      current[select.dataset.left] = select.value;
+      setCorrosionAnswer(select.dataset.corrosionMatch, current);
+      render();
+    }));
+    document.querySelectorAll('[data-corrosion-equation]').forEach((input) => input.addEventListener('input', () => updateCorrosionEquationAnswer(input)));
+    document.querySelectorAll('[data-corrosion-check]').forEach((button) => button.addEventListener('click', () => {
+      state.corrosionChecked[button.dataset.corrosionCheck] = true;
+      render();
+    }));
+    document.querySelectorAll('[data-corrosion-solution]').forEach((button) => button.addEventListener('click', () => {
+      const id = button.dataset.corrosionSolution;
+      state.corrosionSolutionsVisible[id] = !state.corrosionSolutionsVisible[id];
+      render();
+    }));
+    document.querySelectorAll('[data-corrosion-self-check]').forEach((checkbox) => checkbox.addEventListener('change', () => {
+      state.corrosionSelfCheck[checkbox.dataset.corrosionSelfCheck] = checkbox.checked;
+      saveCorrosionSelfCheck();
+    }));
     document.querySelectorAll('[data-klausur-task]').forEach((button) => button.addEventListener('click', () => {
       state.selectedKlausurTaskId = button.dataset.klausurTask;
       navigate('klausurDetail');
+    }));
+    document.querySelectorAll('[data-electrode-target]').forEach((button) => button.addEventListener('click', () => {
+      navigate(button.dataset.electrodeTarget);
+    }));
+    document.querySelectorAll('[data-electrode-exercise]').forEach((button) => button.addEventListener('click', () => {
+      state.selectedElectrodeExerciseId = button.dataset.electrodeExercise;
+      navigate('electrodeExercise');
+    }));
+    document.querySelectorAll('[data-ep-answer]').forEach((input) => input.addEventListener('input', (event) => {
+      state.electrodeAnswers[input.dataset.epAnswer] = event.target.value;
+    }));
+    document.querySelectorAll('[data-ep-answer]').forEach((input) => input.addEventListener('change', (event) => {
+      state.electrodeAnswers[input.dataset.epAnswer] = event.target.value;
+      if (input.tagName === 'SELECT') render();
+    }));
+    document.querySelectorAll('[data-ep-state]').forEach((select) => select.addEventListener('change', (event) => {
+      state.electrodeAnswers[select.dataset.epState] = event.target.value;
+      render();
+    }));
+    document.querySelectorAll('[data-ep-she]').forEach((select) => select.addEventListener('change', (event) => {
+      state.electrodeSheId = event.target.value;
+      render();
+    }));
+    document.querySelectorAll('[data-ep-check]').forEach((button) => button.addEventListener('click', () => {
+      state.electrodeChecked[button.dataset.epCheck] = true;
+      render();
+    }));
+    document.querySelectorAll('[data-ep-criteria]').forEach((button) => button.addEventListener('click', () => {
+      state.electrodeCriteriaVisible[button.dataset.epCriteria] = true;
+      render();
+    }));
+    document.querySelectorAll('[data-ep-model]').forEach((button) => button.addEventListener('click', () => {
+      const box = document.querySelector(`[data-ep-model-box="${button.dataset.epModel}"]`);
+      if (box) box.hidden = !box.hidden;
     }));
     document.querySelectorAll('[data-print-klausur]').forEach((button) => button.addEventListener('click', () => window.print()));
     document.querySelectorAll('[data-model-toggle]').forEach((button) => button.addEventListener('click', () => {
@@ -1190,19 +1836,33 @@
       ? renderOverview()
       : state.view === 'selfCheck'
         ? renderSelfCheck()
-        : state.view === 'klausurOverview'
+      : state.view === 'klausurOverview'
           ? renderKlausurOverview()
           : state.view === 'klausurDetail'
             ? renderKlausurDetail()
-            : state.view === 'redoxExplanation'
-              ? renderExplanation()
-              : state.view === 'redoxHardPractice'
-                ? renderPractice('schwer')
-                : state.view === 'redoxMediumPractice'
-                  ? renderPractice('mittel')
-                  : state.view === 'redoxPractice'
-                    ? renderPractice('einfach')
-                    : renderHome();
+            : state.view === 'electrodePotentials'
+              ? renderElectrodeModuleOverview()
+              : state.view === 'electrodePotentialIntro'
+                ? renderElectrodeIntro()
+                : state.view === 'standardHydrogenElectrode'
+                  ? renderElectrodeShe()
+                  : state.view === 'electrodePotentialPracticeOverview'
+                    ? renderElectrodePracticeOverview()
+                    : state.view === 'electrodeExercise'
+                      ? renderElectrodeExercise()
+                      : state.view === 'corrosionOverview'
+                        ? renderCorrosionOverview()
+                        : state.view === 'oxygenCorrosion'
+                          ? renderOxygenCorrosion()
+                          : state.view === 'redoxExplanation'
+                        ? renderExplanation()
+                        : state.view === 'redoxHardPractice'
+                          ? renderPractice('schwer')
+                          : state.view === 'redoxMediumPractice'
+                            ? renderPractice('mittel')
+                            : state.view === 'redoxPractice'
+                              ? renderPractice('einfach')
+                              : renderHome();
     root.innerHTML = `<main class="page-wrap">${page}</main>`;
     bindEvents();
   }

@@ -9,6 +9,7 @@ import RedoxHardPracticePage from './pages/RedoxHardPracticePage.jsx';
 import SelfCheckPage from './pages/SelfCheckPage.jsx';
 import KlausurTasksOverviewPage from './pages/KlausurTasksOverviewPage.jsx';
 import KlausurTaskDetailPage from './pages/KlausurTaskDetailPage.jsx';
+import ElectrodePotentialModule from './components/ElectrodePotentialModule.jsx';
 
 const views = {
   home: HomePage,
@@ -18,6 +19,7 @@ const views = {
   redoxPractice: RedoxEasyPracticePage,
   redoxMediumPractice: RedoxMediumPracticePage,
   redoxHardPractice: RedoxHardPracticePage,
+  electrodePotentials: ElectrodePotentialModule,
   klausurOverview: KlausurTasksOverviewPage,
   klausurTaskDetail: KlausurTaskDetailPage,
 };
@@ -36,7 +38,11 @@ export default function App() {
 
   return (
     <Layout>
-      <CurrentPage navigate={navigate} selectedTaskId={selectedTaskId} />
+      {view === 'electrodePotentials' ? (
+        <ElectrodePotentialModule onBackToHome={() => setView('home')} />
+      ) : (
+        <CurrentPage navigate={navigate} selectedTaskId={selectedTaskId} />
+      )}
     </Layout>
   );
 }

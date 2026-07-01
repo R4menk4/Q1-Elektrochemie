@@ -928,6 +928,26 @@ button:disabled {
   background: #ffffff;
 }
 
+.corrosion-image-matching {
+  display: grid;
+  gap: 18px;
+}
+
+.corrosion-image-matching__figure {
+  margin: 0;
+  width: 100%;
+}
+
+.corrosion-image-matching__figure img {
+  display: block;
+  width: min(100%, 980px);
+  max-height: 640px;
+  margin: 0 auto;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
 .equation-scaffold {
   display: grid;
   gap: 14px;
@@ -1015,6 +1035,330 @@ button:disabled {
   color: var(--primary-dark);
 }
 
+.module-page {
+  display: grid;
+  gap: 22px;
+}
+
+.module-page-header {
+  display: grid;
+  gap: 14px;
+  margin: 10px 0 8px;
+}
+
+.module-subtitle {
+  max-width: 860px;
+  color: var(--muted);
+  font-size: 1.16rem;
+}
+
+.module-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 18px;
+}
+
+.module-card {
+  display: grid;
+  gap: 12px;
+  min-height: 190px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: left;
+}
+
+.module-card:hover {
+  border-color: #8db9a4;
+  transform: translateY(-2px);
+}
+
+.module-card h2,
+.module-card p {
+  margin: 0;
+}
+
+.module-card-icon {
+  font-size: 2rem;
+}
+
+.module-card-action {
+  color: var(--primary-dark);
+  font-weight: 900;
+}
+
+.operator-chips,
+.label-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.operator-chip,
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f7fbf8;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.afb-i {
+  border-color: #bed8ca;
+  background: #eef8f1;
+}
+
+.afb-ii {
+  border-color: #c7d5df;
+  background: #eff6fa;
+}
+
+.afb-iii {
+  border-color: #e3c98e;
+  background: #fff8e6;
+}
+
+.materials,
+.info-sections,
+.exercise-content,
+.explanation-list {
+  display: grid;
+  gap: 18px;
+}
+
+.info-section,
+.interactive-box,
+.task-box,
+.example-box,
+.key-idea,
+.formula-box,
+.result-box,
+.criteria-box,
+.model-answer {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.info-section,
+.interactive-box,
+.task-box,
+.example-box {
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+
+.key-idea,
+.formula-box,
+.result-box,
+.criteria-box,
+.model-answer {
+  padding: 16px;
+  box-shadow: none;
+}
+
+.formula-box {
+  background: #f7fbf8;
+  color: #102219;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.key-idea {
+  background: #fffdf5;
+  border-color: #ead18e;
+}
+
+.interactive-box,
+.result-box {
+  background: #f8fbf9;
+}
+
+.selector-row,
+.calculation-grid,
+.structured-field-grid,
+.matching-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 14px;
+  margin: 14px 0;
+}
+
+.selector-row label,
+.single-select,
+.calculation-grid label,
+.structured-field-grid label,
+.matching-row {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.selector-row select,
+.single-select select,
+.matching-row select,
+.small-answer-input,
+.equation-input,
+.free-text-area,
+.calculation-grid input,
+.structured-field-grid input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: #ffffff;
+  color: var(--text);
+}
+
+.free-text-area {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.she-visual {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  margin: 18px 0;
+}
+
+.half-cell-card,
+.voltmeter-card {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 170px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  text-align: center;
+}
+
+.large-symbol {
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+
+.bubble-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.bubble-row span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #e8f4ed;
+  font-weight: 900;
+}
+
+.voltmeter-card strong {
+  font-size: 1.65rem;
+  color: var(--primary-dark);
+}
+
+.electron-arrow {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.equation-scaffold-list,
+.equation-row {
+  display: grid;
+  gap: 14px;
+}
+
+.equation-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.equation-particle,
+.equation-electron,
+.formula-unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.formula-unit {
+  position: relative;
+}
+
+.formula-unit sub,
+.formula-unit sup,
+.equation-electron sup {
+  display: inline-flex;
+}
+
+.equation-input {
+  width: 4.5ch;
+  min-width: 44px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.equation-symbol {
+  color: var(--primary-dark);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.expected-display {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.criteria-box {
+  margin-top: 14px;
+  background: #f8fbf9;
+}
+
+.criteria-box ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.criterion-met {
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+
+.criterion-open {
+  color: var(--muted);
+}
+
+.model-answer-wrapper {
+  margin-top: 14px;
+}
+
 @media (max-width: 720px) {
   .page-wrap {
     width: min(100% - 22px, 1120px);
@@ -1061,6 +1405,14 @@ button:disabled {
 
   .particle-input {
     grid-template-columns: minmax(44px, 3ch) minmax(60px, 7ch) minmax(42px, 3.5ch);
+  }
+
+  .she-visual {
+    grid-template-columns: 1fr;
+  }
+
+  .module-card {
+    min-height: 150px;
   }
 }
 

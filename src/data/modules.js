@@ -7,6 +7,14 @@ export const modules = [
     target: 'redoxOverview',
   },
   {
+    id: 'electrode-potentials',
+    title: 'Elektrodenpotenziale',
+    description:
+      'Verstehe, wie Elektrodenpotenziale entstehen, warum man die Standardwasserstoffelektrode braucht und wie Zellspannungen berechnet werden.',
+    status: 'active',
+    target: 'electrodePotentials',
+  },
+  {
     id: 'galvanische-zellen',
     title: 'Galvanische Zelle – Daniell-Element Simulation',
     description:
